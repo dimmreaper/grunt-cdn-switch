@@ -101,6 +101,10 @@ module.exports = function(grunt) {
             // Write the file.
             var local_file = fs.createWriteStream(file.path);
             response.pipe(local_file);
+              resolve({
+                  notmodified: false,
+                  path: file.path
+              });
 
           // Duck out if there are HTTP Status code errors
           } else {
