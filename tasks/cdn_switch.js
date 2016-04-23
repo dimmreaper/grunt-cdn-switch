@@ -139,7 +139,7 @@ module.exports = function(grunt) {
     function check(fetchobj){
       var block = fetchobj.block
       , filename = fetchobj.url.slice(fetchobj.url.lastIndexOf('/') + 1)
-      , local_filepath = block.local_path + '/' + filename
+      , local_filepath = block.download_path + '/' + filename
       ;
 
       if (options.use_local.fetch_newer) {
@@ -209,7 +209,7 @@ module.exports = function(grunt) {
 
           // Count errors and notify user
           if (errorCount === 0) {
-            var success_msg = '\''+block.name+'\' files checked-with/fetched-to: \''+block.local_path+'\'';
+            var success_msg = '\''+block.name+'\' files checked-with/fetched-to: \''+block.download_path+'\'';
             grunt.log.ok(success_msg);
             resolve(success_msg);
           } else {
@@ -256,7 +256,7 @@ module.exports = function(grunt) {
 
       block.resources.forEach(function(url){
         var filename = url.slice(url.lastIndexOf('/')+1);
-        html += parts[0] + block.local_path+'/'+filename + parts[1] + '\n';
+        html += parts[0] + block.local_ref_path+'/'+filename + parts[1] + '\n';
       });
 
 
@@ -316,6 +316,12 @@ module.exports = function(grunt) {
 
     // BEGIN HERE
     ////////////////////////////////////////////////////////////////////////////
+    /*
+     * TODO:
+     * BUG: converts single quotes in html file to &apos;
+     * ADD: download local but link remote
+     * ADD: ability to read/write same html file
+     */
 
     // Iterate over all specified fi groups.
     this.files.forEach(function (f) {
@@ -369,7 +375,7 @@ module.exports = function(grunt) {
         var block = options.blocks[blockName];
         block.name = blockName;
 
-        mkdirp(block.local_path);
+        mkdirp(block.download_path);
 
         if (options.use_local) {
           promiseStack.push(check_files(block));
