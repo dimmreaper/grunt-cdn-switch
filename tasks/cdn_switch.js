@@ -11,7 +11,7 @@
 
 var Promise = require('bluebird')
   , cheerio = require('cheerio')
-  , http = require('http')
+  , request = require('request')
   , fs = require('fs')
   , mkdirp = require('mkdirp')
   ;
@@ -88,7 +88,7 @@ module.exports = function(grunt) {
     function requestHandler(file){
       return new Promise(function(resolve, reject){
 
-        var request = http.get(file.origin, function (response) {
+        var req = request.get(file.origin).on('response', function (response) {
 
           var localTime = new Date(file.modified).getTime()
             , remoteTime = new Date(response.headers['last-modified']).getTime()
@@ -108,7 +108,7 @@ module.exports = function(grunt) {
 
           // Duck out if there are HTTP Status code errors
           } else {
-            request.end();
+            req.end();
             resolve({
               notmodified: true,
               path: file.path
