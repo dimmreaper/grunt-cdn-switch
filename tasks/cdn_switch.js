@@ -96,7 +96,7 @@ module.exports = function(grunt) {
 
           // If the remote file is newer than the local file...
           // Or the local file does not exist...
-          if ( (remoteTime > localTime && options.use_local.fetch_newer ) || !file.exists) {
+          if ( (remoteTime > localTime && options.download_local.fetch_newer ) || !file.exists) {
 
             // Write the file.
             var local_file = fs.createWriteStream(file.path);
@@ -142,9 +142,9 @@ module.exports = function(grunt) {
       , local_filepath = block.download_path + '/' + filename
       ;
 
-      if (options.use_local.fetch_newer) {
+      if (options.download_local.fetch_newer) {
         grunt.log.writeln('Compare: ' + fetchobj.url + ' === ' + local_filepath);
-      } else if (options.use_local) {
+      } else if (options.download_local) {
         grunt.log.writeln('Check: ' + local_filepath);
       }
 
@@ -171,13 +171,13 @@ module.exports = function(grunt) {
             url: url
           }).then(function (response){
 
-            if (!response.notmodified && options.use_local.fetch_newer) {
+            if (!response.notmodified && options.download_local.fetch_newer) {
               grunt.log.writeln('Remote newer: ' + response);
-            } else if (response.notmodified && options.use_local.fetch_newer) {
+            } else if (response.notmodified && options.download_local.fetch_newer) {
               grunt.log.writeln('Remote not newer: ' + response.path);
-            } else if (response.notmodified && options.use_local) {
+            } else if (response.notmodified && options.download_local) {
               grunt.log.writeln('Exists: ' + response.path);
-            } else if (options.use_local) {
+            } else if (options.download_local) {
               grunt.log.writeln('Fetch non-existing: ' + response);
             }
 
@@ -283,13 +283,13 @@ module.exports = function(grunt) {
 
           // Scan an HTML file for comment nodes that contain "cdn-switch"
           // and a target name for the grunt task.
-          // Eg: <!--cdn-switch:tagert-name-->
+          // Eg: <!--cdn-switch:target-name-->
 
           // When found...
           if (splits[0]==='cdn-switch' && splits[1]===obj.block.name) {
 
             // Build new HTML blockdepending on mode...
-            var html = options.use_local ?
+            var html = options.link_local ?
               buildHtmlBlockLocal(obj.block) :
               buildHtmlBlockCDN(obj.block) ;
 
@@ -319,7 +319,6 @@ module.exports = function(grunt) {
     /*
      * TODO:
      * BUG: converts single quotes in html file to &apos;
-     * ADD: download local but link remote
      * ADD: ability to read/write same html file
      */
 
@@ -377,7 +376,7 @@ module.exports = function(grunt) {
 
         mkdirp(block.download_path);
 
-        if (options.use_local) {
+        if (options.download_local) {
           promiseStack.push(check_files(block));
         }
 
