@@ -100,11 +100,14 @@ module.exports = function(grunt) {
 
             // Write the file.
             var local_file = fs.createWriteStream(file.path);
-            response.pipe(local_file);
+
+            //wait for the file to finish writing, then resolve
+            response.pipe(local_file).on('finish', function() {
               resolve({
-                  notmodified: false,
-                  path: file.path
+                notmodified: false,
+                path: file.path
               });
+            });
 
           // Duck out if there are HTTP Status code errors
           } else {
@@ -125,10 +128,6 @@ module.exports = function(grunt) {
         // Handle other events
         }).on('error', function(e){
           reject(e);
-        }).on('end', function(){
-          resolve(file.origin);
-        }).on('close', function(){
-          resolve(file.origin);
         });
 
       });
