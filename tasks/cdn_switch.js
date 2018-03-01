@@ -323,12 +323,12 @@ module.exports = function(grunt) {
           //first pass
           block.resources = block.resources.map(coerceToResourceObj);
 
-          block.resources.forEach((outerItem, index, array) => {
-            if (array.filter(innerItem => innerItem.filename == outerItem.filename).length > 1) {
-              //there are multiple items in the array with the same filename
-              grunt.fail.warn('Multiple resources defined with identical filenames. I could tell you how to fix this.');
-            }
-          });
+          if (new Set(block.resources.map(item => item.filename)).length != block.resources.length) {
+            grunt.fail.warn('Multiple resources defined with identical filenames. I could tell you how to fix this.');
+          }
+
+          //second pass
+          
         }
 
         src = compileHTML(block, src);
