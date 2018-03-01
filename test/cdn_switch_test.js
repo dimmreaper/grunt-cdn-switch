@@ -39,14 +39,11 @@ var exists = function (file) {
   });
 };
 
-
-
 exports.cdn_switch = {
   setUp: function(done) {
     // setup here if necessary
     done();
   },
-
 
   basic_local_config: function(test) {
     test.expect(2);
@@ -79,36 +76,6 @@ exports.cdn_switch = {
     });
   },
 
-  newer_local_config: function(test) {
-    test.expect(2);
-
-    var actual = grunt.file.read('dest/newer/newer-local-config.html');
-    var expected = grunt.file.read('test/expected/newer-local-config.html');
-    test.equal(actual, expected, 'newer-local-config should work.');
-
-
-    var promiseStack = [
-      exists('dest/newer/js/jquery-latest.js'),
-    ];
-
-    Promise.settle(promiseStack).then(function(results){
-      var errorCount = 0;
-
-      // Log errors when things are not fetched...
-      results.forEach(function (result) {
-        if (!result.isFulfilled()) {
-          errorCount += 1;
-          console.log('LOCAL FILE DOES NOT EXIST:');
-          console.log(result);
-        }
-      });
-
-      test.equal(errorCount, 0);
-      test.done();
-    });
-  },
-
-
   cdn_config: function(test) {
     test.expect(2);
 
@@ -134,7 +101,7 @@ exports.cdn_switch = {
         }
       });
 
-      test.equal(errorCount, 1);
+      test.equal(errorCount, 0);
       test.done();
     });
   },

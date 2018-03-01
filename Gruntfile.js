@@ -35,10 +35,12 @@ module.exports = function(grunt) {
           'dest/basic/basic-local-config.html': ['test/fixtures/basic-local-config.html']
         },
         options: {
-          use_local: true,
+          download_local: true,
+          link_local: true,
           blocks: {
             javascript: {
-              local_path: 'dest/basic/js',
+              download_path: 'dest/basic/js',
+              local_ref_path: 'dest/basic/js',
               html: '<script src="{{resource}}"></script>',
               resources: [
                 'http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js',
@@ -50,36 +52,16 @@ module.exports = function(grunt) {
         }
       },
 
-      'newer-local-config': {
-        files: {
-          'dest/newer/newer-local-config.html': ['test/fixtures/newer-local-config.html']
-        },
-        options: {
-          use_local: {
-            fetch_newer: true,
-          },
-          blocks: {
-            javascript: {
-              local_path: 'dest/newer/js',
-              html: '<script src="{{resource}}"></script>',
-              resources: [
-                'http://code.jquery.com/jquery-latest.js',
-              ],
-            },
-          }
-        }
-      },
-
-
       'cdn-config': {
         files: {
           'dest/cdn/cdn-config.html': ['test/fixtures/cdn-config.html']
         },
         options: {
-          use_local: false,
+          download_local: false,
+          link_local: false,
           blocks: {
             javascript: {
-              local_path: 'dest/cdn/js',
+              download_path: 'dest/cdn/js',
               html: '<script src="{{resource}}"></script>',
               resources: [
                 'http://code.jquery.com/jquery-latest.js',

@@ -53,180 +53,118 @@ module.exports = function(grunt) {
       });
     }
 
-    function checkFileModifiedDate(file){
-      var path = file.path;
-
-      return new Promise(function(resolve, reject){
-
-        if (file.exists) {
-
-          fs.stat(path, function(err, stats){
-            resolve({
-              path: path,
-              origin: file.origin,
-              modified: stats.mtime,
-              exists: true
-            });
-          });
-
-        } else {
-
-          resolve({
-            path: path,
-            origin: file.origin,
-            modified: null,
-            exists: false
-         });
-
-        }
-      });
-    }
-
-
     // Request a new file from the server, handle date-modified, error and end
     // events. Don't fetch file if you already have it locally.
-    function requestHandler(file){
-      return new Promise(function(resolve, reject){
+    // function requestHandler(file){
+    //   return new Promise(function(resolve, reject){
 
-        var req = request.get(file.origin).on('response', function (response) {
+    //     var req = request.get(file.origin).on('response', function (response) {
+    //       // Duck out if there are HTTP Status code errors
+    //       if (response.statusCode.toString()[0] === '4'){
+    //         var error = {};
+    //         error[response.statusCode] = file.url;
+    //         reject(error);
+    //       }
 
-          var localTime = new Date(file.modified).getTime()
-            , remoteTime = new Date(response.headers['last-modified']).getTime()
-            ;
+    //       // Or the local file does not exist...
+    //       if (!file.exists) {
 
-          // If the remote file is newer than the local file...
-          // Or the local file does not exist...
-          if ( (remoteTime > localTime && options.download_local.fetch_newer ) || !file.exists) {
+    //         // Write the file.
+    //         var local_file = fs.createWriteStream(file.path);
 
-            // Write the file.
-            var local_file = fs.createWriteStream(file.path);
+    //         //wait for the file to finish writing, then resolve
+    //         response.pipe(local_file).on('finish', function() {
+    //           resolve({
+    //             notmodified: false,
+    //             path: file.path
+    //           });
+    //         });
 
-            //wait for the file to finish writing, then resolve
-            response.pipe(local_file).on('finish', function() {
-              resolve({
-                notmodified: false,
-                path: file.path
-              });
-            });
+    //       // Duck out if there are HTTP Status code errors
+    //       } else {
+    //         req.end();
+    //         resolve({
+    //           notmodified: true,
+    //           path: file.path
+    //         });
+    //       }
 
-          // Duck out if there are HTTP Status code errors
-          } else {
-            req.end();
-            resolve({
-              notmodified: true,
-              path: file.path
-            });
-          }
+    //     // Handle other events
+    //     }).on('error', function(e){
+    //       reject(e);
+    //     });
+    //   });
+    // }
 
-          // Duck out if there are HTTP Status code errors
-          if (response.statusCode.toString()[0] === '4'){
-            var error = {};
-            error[response.statusCode] = file.url;
-            reject(error);
-          }
+    // // Begin the fetch and date-modified check for a single fetch promise
+    // function check(fetchobj){
+    //   var block = fetchobj.block
+    //   , filename = fetchobj.url.slice(fetchobj.url.lastIndexOf('/') + 1)
+    //   , local_filepath = block.download_path + '/' + filename;
 
-        // Handle other events
-        }).on('error', function(e){
-          reject(e);
-        });
+    //   return checkFileExists({
+    //     path: local_filepath,
+    //     origin: fetchobj.url
+    //   })
+    //   .then(requestHandler);
+    // }
 
-      });
-    }
+    // // Build a stack of promises based on the resource list
+    // function checkFilesInBlock (block) {
+    //   return new Promise(function (resolve, reject) {
 
+    //     var fetchPromises = [];
 
-    // Begin the fetch and date-modified check for a single fetch promise
-    function check(fetchobj){
-      var block = fetchobj.block
-      , filename = fetchobj.url.slice(fetchobj.url.lastIndexOf('/') + 1)
-      , local_filepath = block.download_path + '/' + filename
-      ;
+    //     block.resources.forEach(function(url){
+    //       fetchPromises.push(check({
+    //         block: block,
+    //         url: url
+    //       }).then(function (response){
+    //         return response.path;
+    //       }));
 
-      if (options.download_local.fetch_newer) {
-        grunt.log.writeln('Compare: ' + fetchobj.url + ' === ' + local_filepath);
-      } else if (options.download_local) {
-        grunt.log.writeln('Check: ' + local_filepath);
-      }
+    //       return fetchPromises;
+    //     });
 
-      return checkFileExists({
-        path: local_filepath,
-        origin: fetchobj.url
-      })
-      .then(checkFileModifiedDate)
-      .then(requestHandler);
-    }
+    //     // Wait until all the promises are resolved, then settle
+    //     Promise.settle(fetchPromises).then(function(results){
+    //       grunt.log.writeln('Done fetching/checking resources.');
+    //       var errorCount = 0;
 
+    //       // Log errors when things are not fetched...
+    //       results.forEach(function(result){
+    //         if (!result.isFulfilled()) {
+    //           errorCount+=1;
 
+    //           grunt.log.warn('Fetch Error in resources for block: \''+block.name+'\', in target \''+target+'\'.');
+    //           try{
+    //             console.log(result.reason());
+    //           }catch(e){
+    //             console.log(e);
+    //           }
+    //         }
+    //       });
 
+    //       // Count errors and notify user
+    //       if (errorCount === 0) {
+    //         var success_msg = '\''+block.name+'\' files checked-with/fetched-to: \''+block.download_path+'\'';
+    //         grunt.log.ok(success_msg);
+    //         resolve(success_msg);
+    //       } else {
+    //         var error_msg = 'CDN-Switch: Things did not go well for you :\'(';
+    //         grunt.log.warn(error_msg);
+    //         reject(error_msg);
+    //       }
+    //     });
 
-    // Build a stack of promises based on the resource list
-    function check_files (block) {
-      return new Promise(function (resolve, reject) {
-
-        var fetchPromises = [];
-
-        block.resources.forEach(function(url){
-          fetchPromises.push(check({
-            block: block,
-            url: url
-          }).then(function (response){
-
-            if (!response.notmodified && options.download_local.fetch_newer) {
-              grunt.log.writeln('Remote newer: ' + response);
-            } else if (response.notmodified && options.download_local.fetch_newer) {
-              grunt.log.writeln('Remote not newer: ' + response.path);
-            } else if (response.notmodified && options.download_local) {
-              grunt.log.writeln('Exists: ' + response.path);
-            } else if (options.download_local) {
-              grunt.log.writeln('Fetch non-existing: ' + response);
-            }
-
-            return response.path;
-          }));
-
-          return fetchPromises;
-
-        });
-
-        // Wait until all the promises are resolved, then settle
-        Promise.settle(fetchPromises).then(function(results){
-          grunt.log.writeln('Done fetching/checking resources.');
-          var errorCount = 0;
-
-          // Log errors when things are not fetched...
-          results.forEach(function(result){
-            if (!result.isFulfilled()) {
-              errorCount+=1;
-
-              grunt.log.warn('Fetch Error in resources for block: \''+block.name+'\', in target \''+target+'\'.');
-              try{
-                console.log(result.reason());
-              }catch(e){
-                console.log(e);
-              }
-            }
-          });
-
-          // Count errors and notify user
-          if (errorCount === 0) {
-            var success_msg = '\''+block.name+'\' files checked-with/fetched-to: \''+block.download_path+'\'';
-            grunt.log.ok(success_msg);
-            resolve(success_msg);
-          } else {
-            var error_msg = 'CDN-Switch: Things did not go well for you :\'(';
-            grunt.log.warn(error_msg);
-            reject(error_msg);
-          }
-        });
-
-      });
-    }
+    //   });
+    // }
 
 
     // Build HTML block with reource links pointing at CDN
     function buildHtmlBlockCDN(block){
-      var parts = block.html.split('{{resource}}')
-        , html = ''
-        ;
+      var parts = block.html.split('{{resource}}'),
+          html = '';
 
       block.resources.forEach(function(resource){
         html += parts[0] + resource + parts[1] + '\n';
@@ -249,9 +187,8 @@ module.exports = function(grunt) {
     // Build HTML block with reource links pointing to Local
     // versions of CDN files that were fetched
     function buildHtmlBlockLocal(block){
-      var parts = block.html.split('{{resource}}')
-        , html = ''
-        ;
+      var parts = block.html.split('{{resource}}'),
+          html = '';
 
       block.resources.forEach(function(url){
         var filename = url.slice(url.lastIndexOf('/')+1);
@@ -338,9 +275,6 @@ module.exports = function(grunt) {
         return grunt.file.read(filepath);
       }).join(grunt.util.normalizelf(options.separator));
 
-
-
-
       function compileHTML (block, src) {
         // Load the HTML file into Cheerio DOM parser
         var $ = cheerio.load(src);
@@ -361,11 +295,19 @@ module.exports = function(grunt) {
         return src;
       }
 
+      function coerceToResourceObj(resource) {
+        if (typeof resource != 'string') {
+          return resource;
+        } else {
+          return {
+            url: resource,
+            filename: resource.slice(resource.lastIndexOf('/') + 1)
+          };
+        }
+      }
 
-
-      var insertedBlocks = false
-        , promiseStack = []
-        ;
+      var insertedBlocks = false,
+          promiseStack = [];
 
       // For each block in the target...
       for (var blockName in options.blocks){
@@ -376,7 +318,17 @@ module.exports = function(grunt) {
         mkdirp(block.download_path);
 
         if (options.download_local) {
-          promiseStack.push(check_files(block));
+          //promiseStack.push(checkFilesInBlock(block));
+
+          //first pass
+          block.resources = block.resources.map(coerceToResourceObj);
+
+          block.resources.forEach((outerItem, index, array) => {
+            if (array.filter(innerItem => innerItem.filename == outerItem.filename).length > 1) {
+              //there are multiple items in the array with the same filename
+              grunt.fail.warn('Multiple resources defined with identical filenames. I could tell you how to fix this.');
+            }
+          });
         }
 
         src = compileHTML(block, src);
@@ -395,11 +347,6 @@ module.exports = function(grunt) {
 
         done();
       });
-
-
-
     });
-
   });
-
 };
