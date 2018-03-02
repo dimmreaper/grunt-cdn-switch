@@ -10,89 +10,89 @@
 
 module.exports = function(grunt) {
 
-  // Project configuration.
-  grunt.initConfig({
-    jshint: {
-      all: [
-        'Gruntfile.js',
-        'tasks/*.js',
-        '<%= nodeunit.tests %>'
-      ],
-      options: {
-        jshintrc: '.jshintrc'
-      }
-    },
-
-    // Before generating any new files, remove any previously-created files.
-    clean: {
-      tests: ['dest']
-    },
-
-    cdn_switch: {
-
-      'basic-local-config': {
-        files: {
-          'dest/basic/basic-local-config.html': ['test/fixtures/basic-local-config.html']
+    // Project configuration.
+    grunt.initConfig({
+        jshint: {
+            all: [
+                'Gruntfile.js',
+                'tasks/*.js',
+                '<%= nodeunit.tests %>'
+            ],
+            options: {
+                jshintrc: '.jshintrc'
+            }
         },
-        options: {
-          download_local: true,
-          link_local: true,
-          blocks: {
-            javascript: {
-              download_path: 'dest/basic/js',
-              local_ref_path: 'dest/basic/js',
-              html: '<script src="{{resource}}"></script>',
-              resources: [
-                'http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js',
-                'http://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.js',
-                'http://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js',
-              ],
-            },
-          }
-        }
-      },
 
-      'cdn-config': {
-        files: {
-          'dest/cdn/cdn-config.html': ['test/fixtures/cdn-config.html']
+        // Before generating any new files, remove any previously-created files.
+        clean: {
+            tests: ['dest']
         },
-        options: {
-          download_local: false,
-          link_local: false,
-          blocks: {
-            javascript: {
-              download_path: 'dest/cdn/js',
-              html: '<script src="{{resource}}"></script>',
-              resources: [
-                'http://code.jquery.com/jquery-latest.js',
-              ],
+
+        cdn_switch: {
+
+            'basic-local-config': {
+                files: {
+                    'dest/basic/basic-local-config.html': ['test/fixtures/basic-local-config.html']
+                },
+                options: {
+                    download_local: true,
+                    link_local: true,
+                    blocks: {
+                        javascript: {
+                            download_path: 'dest/basic/js',
+                            local_ref_path: 'dest/basic/js',
+                            html: '<script src="{{resource}}"></script>',
+                            resources: [
+                                'http://cdnjs.cloudflare.com/ajax/libs/angular.js/1.3.15/angular.min.js',
+                                'http://ajax.googleapis.com/ajax/libs/angularjs/1.3.15/angular-animate.js',
+                                'http://cdnjs.cloudflare.com/ajax/libs/angular-ui-router/0.2.13/angular-ui-router.min.js',
+                            ],
+                        },
+                    }
+                }
             },
-          }
+
+            'cdn-config': {
+                files: {
+                    'dest/cdn/cdn-config.html': ['test/fixtures/cdn-config.html']
+                },
+                options: {
+                    download_local: false,
+                    link_local: false,
+                    blocks: {
+                        javascript: {
+                            download_path: 'dest/cdn/js',
+                            html: '<script src="{{resource}}"></script>',
+                            resources: [
+                                'http://code.jquery.com/jquery-latest.js',
+                            ],
+                        },
+                    }
+                }
+            },
+
+        },
+
+        // Unit tests.
+        nodeunit: {
+            tests: ['test/*_test.js']
         }
-      },
 
-    },
+    });
 
-    // Unit tests.
-    nodeunit: {
-      tests: ['test/*_test.js']
-    }
+    // Actually load this plugin's task(s).
+    grunt.loadTasks('tasks');
 
-  });
+    // These plugins provide necessary tasks.
+    grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-contrib-clean');
+    grunt.loadNpmTasks('grunt-contrib-nodeunit');
 
-  // Actually load this plugin's task(s).
-  grunt.loadTasks('tasks');
+    // Whenever the "test" task is run, first clean the "tmp" dir, then run this
+    // plugin's task(s), then test the result.
+    grunt.registerTask('test', ['clean', 'cdn_switch', 'nodeunit']);
 
-  // These plugins provide necessary tasks.
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-nodeunit');
-
-  // Whenever the "test" task is run, first clean the "tmp" dir, then run this
-  // plugin's task(s), then test the result.
-  grunt.registerTask('test', ['clean', 'cdn_switch', 'nodeunit']);
-
-  // By default, lint and run all tests.
-  grunt.registerTask('default', ['jshint', 'test']);
-  // grunt.registerTask('default', ['cdn_switch']);
+    // By default, lint and run all tests.
+    grunt.registerTask('default', ['jshint', 'test']);
+    // grunt.registerTask('default', ['cdn_switch']);
 };

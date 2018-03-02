@@ -1,9 +1,8 @@
 'use strict';
 
-var grunt = require('grunt')
-  , fs = require('fs')
-  , Promise = require('bluebird')
-  ;
+var grunt = require('grunt'),
+    fs = require('fs'),
+    Promise = require('bluebird');
 
 
 /*
@@ -27,83 +26,82 @@ var grunt = require('grunt')
 */
 
 
-var exists = function (file) {
-  return new Promise(function (resolve, reject) {
-    fs.exists(file, function (file_exists) {
-      if (file_exists) {
-        resolve(file);
-      } else {
-        reject(file);
-      }
+var exists = function(file) {
+    return new Promise(function(resolve, reject) {
+        fs.exists(file, function(file_exists) {
+            if (file_exists) {
+                resolve(file);
+            } else {
+                reject(file);
+            }
+        });
     });
-  });
 };
 
 exports.cdn_switch = {
-  setUp: function(done) {
-    // setup here if necessary
-    done();
-  },
+    setUp: function(done) {
+        // setup here if necessary
+        done();
+    },
 
-  basic_local_config: function(test) {
-    test.expect(2);
+    basic_local_config: function(test) {
+        test.expect(2);
 
-    var actual = grunt.file.read('dest/basic/basic-local-config.html');
-    var expected = grunt.file.read('test/expected/basic-local-config.html');
-    test.equal(actual, expected, 'basic-local-config should work.');
-
-
-    var promiseStack = [
-      exists('dest/basic/js/angular-animate.js'),
-      exists('dest/basic/js/angular-ui-router.min.js'),
-      exists('dest/basic/js/angular.min.js'),
-    ];
-
-    Promise.settle(promiseStack).then(function(results){
-      var errorCount = 0;
-
-      // Log errors when things are not fetched...
-      results.forEach(function (result) {
-        if (!result.isFulfilled()) {
-          errorCount += 1;
-          console.log('LOCAL FILE DOES NOT EXIST:');
-          console.log(result);
-        }
-      });
-
-      test.equal(errorCount, 0);
-      test.done();
-    });
-  },
-
-  cdn_config: function(test) {
-    test.expect(2);
-
-    var actual = grunt.file.read('dest/cdn/cdn-config.html');
-    var expected = grunt.file.read('test/expected/cdn-config.html');
-    test.equal(actual, expected, 'cdn-config should work.');
+        var actual = grunt.file.read('dest/basic/basic-local-config.html');
+        var expected = grunt.file.read('test/expected/basic-local-config.html');
+        test.equal(actual, expected, 'basic-local-config should work.');
 
 
-    var promiseStack = [
-      exists('dest/newer/js/jquery-latest.js'),
-    ];
+        var promiseStack = [
+            exists('dest/basic/js/angular-animate.js'),
+            exists('dest/basic/js/angular-ui-router.min.js'),
+            exists('dest/basic/js/angular.min.js'),
+        ];
 
-    Promise.settle(promiseStack).then(function(results){
-      var errorCount = 0;
+        Promise.settle(promiseStack).then(function(results) {
+            var errorCount = 0;
 
-      // Log errors when things are not fetched...
-      results.forEach(function (result) {
-        if (!result.isFulfilled()) {
-        } else {
-          errorCount += 1;
-          console.log('LOCAL SHOULD NOT NOT EXIST (but does):');
-          console.log(result);
-        }
-      });
+            // Log errors when things are not fetched...
+            results.forEach(function(result) {
+                if (!result.isFulfilled()) {
+                    errorCount += 1;
+                    console.log('LOCAL FILE DOES NOT EXIST:');
+                    console.log(result);
+                }
+            });
 
-      test.equal(errorCount, 0);
-      test.done();
-    });
-  },
+            test.equal(errorCount, 0);
+            test.done();
+        });
+    },
+
+    cdn_config: function(test) {
+        test.expect(2);
+
+        var actual = grunt.file.read('dest/cdn/cdn-config.html');
+        var expected = grunt.file.read('test/expected/cdn-config.html');
+        test.equal(actual, expected, 'cdn-config should work.');
+
+
+        var promiseStack = [
+            exists('dest/newer/js/jquery-latest.js'),
+        ];
+
+        Promise.settle(promiseStack).then(function(results) {
+            var errorCount = 0;
+
+            // Log errors when things are not fetched...
+            results.forEach(function(result) {
+                if (!result.isFulfilled()) {} else {
+                    errorCount += 1;
+                    console.log('LOCAL SHOULD NOT NOT EXIST (but does):');
+                    console.log(result);
+                }
+            });
+
+            test.equal(errorCount, 0);
+            test.done();
+        });
+    },
 
 };
