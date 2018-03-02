@@ -92,7 +92,7 @@ exports.cdn_switch = {
 
             // Log errors when things are not fetched...
             results.forEach(function(result) {
-                if (!result.isFulfilled()) {} else {
+                if (!result.isFulfilled()) {
                     errorCount += 1;
                     console.log('LOCAL SHOULD NOT NOT EXIST (but does):');
                     console.log(result);

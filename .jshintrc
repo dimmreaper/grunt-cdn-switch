@@ -12,6 +12,7 @@
   "node": true,
   "laxbreak": true,
   "laxcomma": true,
+  "esnext": true,
   "globals" : {
     "$": true,
     "jQuery": true,
