@@ -33,22 +33,6 @@ module.exports = function (grunt) {
             separator: ', '
         });
 
-        function checkFileExists(file) {
-            var path = file.path;
-            return new Promise(function (resolve, reject) {
-                fs.exists(path, function (exists) {
-
-                    resolve({
-                        path: path,
-                        origin: file.origin,
-                        exists: exists
-                    });
-
-                });
-
-            });
-        }
-
         // Request a new file from the server, handle date-modified, error and end
         // events. Don't fetch file if you already have it locally.
         function requestHandler(file) {
@@ -93,16 +77,14 @@ module.exports = function (grunt) {
         }
 
         // Begin the fetch and date-modified check for a single fetch promise
-        function check(fetchobj) {
-            var block = fetchobj.block
-                , filename = fetchobj.url.slice(fetchobj.url.lastIndexOf('/') + 1)
-                , local_filepath = block.download_path + '/' + filename;
+        function check({block, resource}) {
+            var local_filepath = block.download_path + '/' + resource.filename;
 
-            return checkFileExists({
+            return requestHandler({
                 path: local_filepath,
-                origin: fetchobj.url
-            })
-                .then(requestHandler);
+                origin: resource.url,
+                exists: fs.existsSync(local_filepath)
+            });
         }
 
         // Build a stack of promises based on the resource list
@@ -111,10 +93,10 @@ module.exports = function (grunt) {
 
                 var fetchPromises = [];
 
-                block.resources.forEach(function (url) {
+                block.resources.forEach(function (resource) {
                     fetchPromises.push(check({
                         block: block,
-                        url: url
+                        resource: resource
                     }).then(function (response) {
                         return response.path;
                     }));
@@ -306,17 +288,45 @@ module.exports = function (grunt) {
                 mkdirp(block.download_path);
 
                 if (options.download_local) {
-                    promiseStack.push(checkFilesInBlock(block));
 
-                    //first pass
+                    // convert urls to {url: "url", filename: "filename"}
                     block.resources = block.resources.map(coerceToResourceObj);
 
+                    // fail on duplicate 
                     if (new Set(block.resources.map(item => item.filename)).size !== block.resources.length) {
                         grunt.fail.warn('Multiple resources defined with identical filenames. I could tell you how to fix this.');
                     }
 
-                    //second pass
+                    // todo: remove orphaned cdn-lock.json entries (in cdn-lock.json but not in cdn.json/resources array)
 
+                    // todo: load cdn-lock.json into memory
+
+                    // todo: third pass
+                    /*
+                    for each resource:
+                        check cdn-lock.json for match on url
+                        if match exists {
+                            check for filename match in directory
+                            if match exists {
+                                hash existing file
+                                compare hash to stored hash in cdn-lock.json
+                                if match {
+                                    do nothing - we already have the correct file
+                                } else {
+                                    download/overwrite existing file
+                                    update hash in cdn-lock.json if necessary
+                                }
+                            } else {
+                                download
+                                update hash in cdn-lock.json if necessary
+                            }
+                        } else {
+                            download, hash, and add entry to cdn-lock.json
+                        }
+                    */
+
+                    // todo: cut this into code written above
+                    promiseStack.push(checkFilesInBlock(block));
                 }
 
                 fileContents = compileHTML(block, fileContents, file);

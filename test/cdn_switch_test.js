@@ -65,7 +65,7 @@ exports.cdn_switch = {
             results.forEach(function(result) {
                 if (!result.isFulfilled()) {
                     errorCount += 1;
-                    console.log('LOCAL FILE DOES NOT EXIST:');
+                    console.log('A file from the cdn which should have been downloaded could not be found.');
                     console.log(result);
                 }
             });
@@ -94,7 +94,7 @@ exports.cdn_switch = {
             results.forEach(function(result) {
                 if (result.isFulfilled()) {
                     errorCount += 1;
-                    console.log('LOCAL SHOULD NOT EXIST (but does):');
+                    console.log('A file from the cdn should NOT have been downloaded but was.');
                     console.log(result);
                 }
             });
