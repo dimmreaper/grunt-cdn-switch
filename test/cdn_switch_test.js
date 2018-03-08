@@ -90,11 +90,11 @@ exports.cdn_switch = {
         Promise.settle(promiseStack).then(function(results) {
             var errorCount = 0;
 
-            // Log errors when things are not fetched...
+            // Log errors when things are fetched...
             results.forEach(function(result) {
-                if (!result.isFulfilled()) {
+                if (result.isFulfilled()) {
                     errorCount += 1;
-                    console.log('LOCAL SHOULD NOT NOT EXIST (but does):');
+                    console.log('LOCAL SHOULD NOT EXIST (but does):');
                     console.log(result);
                 }
             });
